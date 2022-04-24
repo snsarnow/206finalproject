@@ -7,8 +7,8 @@ import csv
 import os
 
 #PULL EVENT ID FROM SEAT GEEK API
-def get_sg_events(num_of_pgs):
-    url = "https://api.seatgeek.com/2/events?client_id=MjY1NDY4OTd8MTY0OTk0NTE3My42OTY4NTg2&client_secret=a005a2e60e8f8d3e548cc78a3371d72d28b95a3d4b5a3070f41db576d70cd3ad&type=concert&per_page=25&page="+str(num_of_pgs)
+def get_sg_events(pg_num):
+    url = "https://api.seatgeek.com/2/events?client_id=MjY1NDY4OTd8MTY0OTk0NTE3My42OTY4NTg2&client_secret=a005a2e60e8f8d3e548cc78a3371d72d28b95a3d4b5a3070f41db576d70cd3ad&type=concert&per_page=25&page="+str(pg_num)
     response = requests.get(url)
     data = json.loads(response.content)
 
@@ -177,6 +177,7 @@ def write_sg_csv(cur, conn):
         for tup in event_avgs:
             writer.writerow(tup)
         writer.writerow(("Mean Price", mean))
+    f.close()
 
 #WRITE CALCULATIONS INTO CSV FOR TICKET MASTER
 def write_tm_csv(cur, conn):
@@ -198,7 +199,7 @@ def write_tm_csv(cur, conn):
 
 #MINIMUM PRICE VISUAL FOR SEAT GEEK
 def min_price_sg_visual(cur, conn):
-    cur.execute("""SELECT event_title, max_price
+    cur.execute("""SELECT event_title, min_price
     FROM Seat_Geek_Events 
     """ )
     results = cur.fetchall()
@@ -211,7 +212,7 @@ def min_price_sg_visual(cur, conn):
         y.append(min_price)
     plt.bar(x[:3],y[:3])
     plt.ylabel('Minimum Ticket Price in USD')
-    plt.xlabel('Event title')
+    plt.xlabel('Event Title')
     plt.xticks(x[:3],  rotation=15)
     plt.title('Top 3 Least Expensive Concerts From Seat Geek')
     plt.show()
@@ -288,8 +289,8 @@ def main():
     calc_tm_avgs(cur, conn)
     calc_tm_mean(cur, conn)
 
-    #write_sg_csv(cur, conn)
-    #write_tm_csv(cur, conn)
+    write_sg_csv(cur, conn)
+    write_tm_csv(cur, conn)
 
     min_price_sg_visual(cur,conn)
     max_price_sg_visual(cur, conn)
